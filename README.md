@@ -1,4 +1,8 @@
-# cisa-main-react
+# FOSDEM Search
+
+A quickly handcrafted search for 834+ FOSDEM'20 talks • built in Brussels.
+
+[**Visit the website →**](https://fosdem-search.netlify.com/)
 
 _This project was generated with [create-instantsearch-app](https://github.com/algolia/create-instantsearch-app) by [Algolia](https://algolia.com)._
 

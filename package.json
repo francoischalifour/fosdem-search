@@ -11,6 +11,7 @@
     "prestart": "yarn build:styles"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free-brands": "5.0.13",
     "@fortawesome/fontawesome-svg-core": "1.2.26",
     "@fortawesome/free-solid-svg-icons": "5.12.0",
     "@fortawesome/react-fontawesome": "0.1.8",
@@ -42,5 +43,5 @@
     "not op_mini all"
   ],
   "keywords": [],
-  "description": "Search the FOSDEM 2020 conf"
+  "description": "A quickly handcrafted search for 834+ FOSDEM'20 talks • built in Brussels"
 }

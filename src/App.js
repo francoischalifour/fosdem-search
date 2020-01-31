@@ -19,6 +19,8 @@ import qs from 'qs';
 import { format, formatDistanceStrict, isWithinInterval } from 'date-fns';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { fab } from '@fortawesome/fontawesome-free-brands';
 import './App.css';
 import { getUrlFromState, getStateFromUrl } from './router';
 import { PoweredBy } from './PoweredBy';
@@ -104,6 +106,13 @@ function App() {
               FOSDEM Search
             </a>
           </h1>
+        </div>
+
+        <div>
+          <a href="https://fosdem.org">FOSDEM'20</a> •{' '}
+          <a href="https://github.com/francoischalifour/fosdem-search">
+            GitHub
+          </a>
         </div>
       </header>
 
@@ -242,7 +251,7 @@ function Hit({ hit }) {
         <strong>{hit.day}</strong> at <strong>{format(hit.start, 'p')}</strong>{' '}
         ({formatDistanceStrict(hit.start, hit.end)}) • Room{' '}
         <strong className="text-gray-800">{hit.room}</strong>
-        {/* <FontAwesomeIcon icon="clock" /> */}
+        <FontAwesomeIcon icon="clock" />
       </div>
     </article>
   );

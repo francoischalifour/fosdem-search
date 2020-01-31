@@ -101,7 +101,7 @@ function App() {
                 width="32px"
                 alt="FOSDEM Logo"
               />
-              FOSDEM Search with Algolia
+              FOSDEM Search
             </a>
           </h1>
         </div>

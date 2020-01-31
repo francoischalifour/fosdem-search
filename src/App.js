@@ -118,7 +118,7 @@ function App() {
 
         <div className="max-w-5xl p-4 m-auto">
           <div className="flex -mx-2">
-            <aside className="w-1/4">
+            <aside className="w-1/4" style={{ minWidth: 200 }}>
               <div className="filters px-2 sticky overflow-auto h-screen">
                 {/* <Panel>
                   <ShowPastEvents

@@ -12,16 +12,20 @@ import {
   RefinementList,
   ScrollTo,
   connectRefinementList,
-  connectNumericMenu,
 } from 'react-instantsearch-dom';
 import qs from 'qs';
-import { format, formatDistanceStrict, isWithinInterval } from 'date-fns';
+import {
+  format,
+  formatDistanceStrict,
+  isWithinInterval,
+  subHours,
+} from 'date-fns';
 import PropTypes from 'prop-types';
 import './App.css';
 import { getUrlFromState, getStateFromUrl } from './router';
 import { PoweredBy } from './PoweredBy';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fab } from '@fortawesome/free-brands-svg-icons';
 import {
@@ -31,16 +35,61 @@ import {
   faTimes,
   faMapMarkerAlt,
 } from '@fortawesome/free-solid-svg-icons';
+import Truncate from 'react-truncate';
+import Modal from 'react-modal';
 
 library.add(fab, faClock, faCoffee, faFilter, faTimes, faMapMarkerAlt);
+
+Modal.setAppElement('#root');
 
 const searchClient = algoliasearch(
   process.env.REACT_APP_ALGOLIA_APP_ID,
   process.env.REACT_APP_ALGOLIA_API_KEY
 );
 
-const ToggleDay = connectRefinementList(({ items, refine }) => {
-  items.sort((a, _b) => (a.label === 'Saturday' ? -1 : 1));
+const ToggleDay = connectRefinementList(({ items: actualItems, refine }) => {
+  if (actualItems.length === 0) {
+    return null;
+  }
+
+  const items = [
+    {
+      label: 'Saturday 1st morning',
+      value: ['saturday morning'],
+      isRefined: (
+        actualItems.find(item => item.label === 'saturday morning') || {
+          isRefined: false,
+        }
+      ).isRefined,
+    },
+    {
+      label: 'Saturday 1st afternoon',
+      value: ['saturday afternoon'],
+      isRefined: (
+        actualItems.find(item => item.label === 'saturday afternoon') || {
+          isRefined: false,
+        }
+      ).isRefined,
+    },
+    {
+      label: 'Sunday 2nd morning',
+      value: ['sunday morning'],
+      isRefined: (
+        actualItems.find(item => item.label === 'sunday morning') || {
+          isRefined: false,
+        }
+      ).isRefined,
+    },
+    {
+      label: 'Sunday 2nd afternoon',
+      value: ['sunday afternoon'],
+      isRefined: (
+        actualItems.find(item => item.label === 'saturday afternoon') || {
+          isRefined: false,
+        }
+      ).isRefined,
+    },
+  ];
 
   return items.map(item => (
     <div key={item.label} className="ais-ToggleRefinement">
@@ -51,9 +100,7 @@ const ToggleDay = connectRefinementList(({ items, refine }) => {
           checked={item.isRefined}
           onChange={() => refine(item.value)}
         />
-        <span className="ais-ToggleRefinement-labeltext">
-          {item.label === 'Saturday' ? 'Saturday 1st' : 'Sunday 2nd'}
-        </span>
+        <span className="ais-ToggleRefinement-labeltext">{item.label}</span>
       </label>
     </div>
   ));
@@ -68,6 +115,7 @@ function App() {
     })
   );
   const [debouncedSetState, setDebouncedSetState] = React.useState(undefined);
+  const [modalIsOpen, setModalIsOpen] = React.useState(false);
 
   const onSearchStateChange = updatedSearchState => {
     clearTimeout(debouncedSetState);
@@ -85,7 +133,9 @@ function App() {
 
   React.useEffect(() => {
     function onResize() {
-      setIsPanelHidden(true);
+      if (window.innerWidth > 768) {
+        setIsPanelHidden(true);
+      }
     }
 
     window.addEventListener('resize', onResize);
@@ -113,8 +163,23 @@ function App() {
         </div>
 
         <div>
+          <button
+            className="bg-transparent text-white border-none"
+            style={{
+              font: 'inherit',
+              cursor: 'pointer',
+              outline: 0,
+            }}
+            onClick={() => setModalIsOpen(!modalIsOpen)}
+          >
+            About
+          </button>
+
           <a href="https://github.com/francoischalifour/fosdem-search">
-            GitHub
+            <FontAwesomeIcon
+              className="text-white ml-4 mr-2"
+              icon={['fab', 'github']}
+            />
           </a>
         </div>
       </header>
@@ -128,13 +193,13 @@ function App() {
       >
         <Configure attributesToSnippet={['description:50']} />
 
-        <div className="max-w-5xl p-4 m-auto mb-4">
+        <div className="max-w-5xl p-4 m-auto mb-8">
           <div className="flex -mx-2">
             <aside
               className={`w-full md:w-1/4 md:block ${
                 isPanelHidden ? 'hidden' : ''
               }`}
-              style={{ minWidth: 200 }}
+              style={{ minWidth: 240 }}
             >
               <div className="filters px-2 sticky overflow-auto h-screen">
                 <div className="md:hidden flex justify-end">
@@ -151,8 +216,13 @@ function App() {
 
                 <Panel header="February 2020">
                   <ToggleDay
-                    attribute="day"
-                    defaultRefinement={['Saturday', 'Sunday']}
+                    attribute="time_period"
+                    defaultRefinement={[
+                      'saturday morning',
+                      'saturday afternoon',
+                      'sunday morning',
+                      'sunday afternoon',
+                    ]}
                   />
                 </Panel>
 
@@ -162,6 +232,9 @@ function App() {
                     searchable
                     showMore
                     showMoreLimit={100}
+                    translations={{
+                      placeholder: 'Search tracks',
+                    }}
                   />
                 </Panel>
 
@@ -182,10 +255,13 @@ function App() {
 
                 <Panel header="Speaker">
                   <RefinementList
-                    attribute="speaker"
+                    attribute="speakers"
                     searchable
                     showMore
                     showMoreLimit={100}
+                    translations={{
+                      placeholder: 'Search speakers',
+                    }}
                   />
                 </Panel>
 
@@ -235,7 +311,7 @@ function App() {
 
       <div
         className={`fixed md:hidden ${isPanelHidden ? '' : 'hidden'}`}
-        style={{ bottom: '1rem', right: '1rem' }}
+        style={{ bottom: '2rem', right: '2rem' }}
       >
         <button
           className="ais-ClearRefinements-button"
@@ -260,8 +336,150 @@ function App() {
           Filters
         </button>
       </div>
+
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setModalIsOpen(!modalIsOpen)}
+        style={{
+          content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+          },
+        }}
+        contentLabel="About"
+      >
+        <button
+          className="w-24 float-right bg-red-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+          onClick={() => setModalIsOpen(!modalIsOpen)}
+        >
+          close
+        </button>
+        <article>
+          <h1 className="mb-8">About</h1>
+          <p>
+            A quickly handcrafted search for 834 FOSDEM'20 talks built in
+            Brussels 🧇
+          </p>
+
+          <p>
+            It will helped you to browse and find the wonderful talk you want to
+            assisst <a href="https://fosdem.org/2020/">on FOSDEM 2020</a>.
+          </p>
+          <h4>Why?</h4>
+
+          <p>
+            We were struggling to find the room and right talk we wanted to
+            attend. We thought we could help the community to navigate through
+            all events.
+          </p>
+
+          <h4>How?</h4>
+
+          <p>
+            The back-end used here is pretty simple. We have fine tuned the
+            behavior of{' '}
+            <a href="https://github.com/algolia/docsearch-scraper/">
+              the DocSearch crawler{' '}
+            </a>
+            based <a href="https://scrapy.org/">on scrappy</a>. We have created{' '}
+            <a href="https://github.com/algolia/docsearch-configs/blob/master/disabled/fosdem.json">
+              a dedicated configuration
+            </a>{' '}
+            which helps us to extract the needed information to identify the
+            talks such as the speakers, the track it belongs to, the start and
+            end hours, the room where it takes place ...
+          </p>
+          <p>
+            We needed to custom the behavior of the crawler to build an Algolia
+            index in the most performing way. It ended up create its own fork of
+            the DocSearch open source crawler available{' '}
+            <a href="https://github.com/algolia/docsearch-scraper/tree/fosdem/">
+              from the "fosdem" git branch
+            </a>
+            .
+          </p>
+          <h4>What?</h4>
+
+          <p>
+            This tool has been hacked thanks to{' '}
+            <a href="https://www.algolia.com/products/instantsearch/">
+              InstantSearch
+            </a>
+            , <a href="https://codesandbox.io/">codesandbox</a> and{' '}
+            <a href="https://www.netlify.com/">Netlify</a>. This project was
+            generated{' '}
+            <a href="https://github.com/algolia/create-instantsearch-app">
+              with create-instantsearch-app
+            </a>{' '}
+            <a href="https://algolia.com">by Algolia</a>.
+          </p>
+          <h4>When?</h4>
+
+          <p>Basically, just the day before of FOSDEM 2020.</p>
+          <h4>Who?</h4>
+
+          <p>
+            This tool has been made by
+            <a href="https://community.algolia.com/docsearch/">
+              {' '}
+              the team behind DocSearch. The best search experience for docs,
+              integrates in minutes, for free.
+            </a>
+          </p>
+          <h3>Useful links:</h3>
+          <ul>
+            <li>
+              <a href="https://fosdem.org/2020/practical/transportation/">
+                Plan
+              </a>
+            </li>
+            <li>
+              <a href="https://twitter.com/docsearch_">Give us your feedback</a>
+            </li>
+            <li>
+              <a href="https://github.com/francoischalifour/fosdem-search">
+                GitHub of the UI
+              </a>
+            </li>
+          </ul>
+        </article>
+      </Modal>
     </div>
   );
+}
+
+function Live({ hit }) {
+  if (
+    isWithinInterval(new Date(), {
+      start: new Date(hit.start),
+      end: new Date(hit.end),
+    })
+  ) {
+    return (
+      <a className="text-sm bg-pink-400 py-1 px-2 ml-2" href={hit.live}>
+        Live
+      </a>
+    );
+  }
+
+  if (
+    isWithinInterval(new Date(), {
+      start: subHours(hit.start, 1),
+      end: hit.end,
+    })
+  ) {
+    return (
+      <a className="text-sm bg-pink-400 py-1 px-2 ml-2" href={hit.live}>
+        Live in less than 1 hour
+      </a>
+    );
+  }
+
+  return null;
 }
 
 function Hit({ hit }) {
@@ -274,32 +492,43 @@ function Hit({ hit }) {
       <a href={hit.url}>
         <h1>
           <Highlight attribute="hierarchy.lvl0" hit={hit} />
-          {isWithinInterval(Date.now, { start: hit.start, end: hit.end }) && (
-            <a className="text-sm bg-pink-400 py-1 px-2 ml-2" href={hit.live}>
-              Live
-            </a>
-          )}
+          <Live hit={hit} />
         </h1>
       </a>
 
-      <a
-        className="underline flex items-center"
-        href={`https://fosdem.org/${hit.speaker_url}`}
-      >
-        {hit.github_handle && (
-          <img
-            src={`https://unavatar.now.sh/github/${hit.github_handle}`}
-            alt={hit.speaker}
-            className="rounded-full mr-4"
-            style={{ width: 24, height: 24 }}
-          />
-        )}{' '}
-        By {hit.speaker}
-      </a>
+      {(hit.speakers || []).map((speaker, i) => (
+        <a
+          className="underline flex items-center mt-2"
+          href={`https://fosdem.org/${hit.speaker_url[i]}`}
+        >
+          {hit.github_handle && (
+            <img
+              src={`https://unavatar.now.sh/github/${hit.github_handle}`}
+              alt={speaker}
+              className="rounded-full mr-2"
+              style={{ width: 24, height: 24 }}
+            />
+          )}{' '}
+          {speaker}
+        </a>
+      ))}
 
-      <p className="text-gray-700">
+      {hit.twitter}
+
+      <Truncate
+        className="text-gray-700 my-4 block"
+        lines={3}
+        ellipsis={
+          <span>
+            ...{' '}
+            <a class="text-fosdem" href="/link/to/article">
+              Show more
+            </a>
+          </span>
+        }
+      >
         <Snippet attribute="description" hit={hit} />
-      </p>
+      </Truncate>
 
       <div className="text-gray-800 mt-0 py-1 px-2 border-solid border-2 rounded border-gray-300">
         <strong>{hit.day}</strong> at <strong>{format(hit.start, 'p')}</strong>{' '}

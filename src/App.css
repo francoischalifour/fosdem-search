@@ -32,6 +32,39 @@ article a {
 }
 
 /**
+ * Modal
+ */
+
+.ReactModalPortal a {
+  outline: none;
+  text-decoration: none;
+  padding: 2px 1px 0;
+}
+
+.ReactModalPortal a:link {
+  color: blue;
+}
+
+.ReactModalPortal a:visited {
+  color: #437a16;
+}
+
+.ReactModalPortal a:focus {
+  border-bottom: 1px solid;
+  background: #bae498;
+}
+
+.ReactModalPortal a:hover {
+  border-bottom: 1px solid;
+  background: #cdfeaa;
+}
+
+.ReactModalPortal a:active {
+  background: #265301;
+  color: #cdfeaa;
+}
+
+/**
  * Theme specifics
  */
 
@@ -89,4 +122,10 @@ article a {
 
 .ais-Hits h1 {
   line-height: 1.2;
+}
+
+@media (max-width: 767px) {
+  .ais-SearchBox-input {
+    font-size: 16px;
+  }
 }

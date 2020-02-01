@@ -55,7 +55,11 @@ const ToggleDay = connectRefinementList(({ items: actualItems, refine }) => {
   const items = [
     {
       label: 'Saturday 1st morning',
-      value: ['saturday morning'],
+      value: (
+        actualItems.find(item => item.label === 'saturday morning') || {
+          value: [],
+        }
+      ).value,
       isRefined: (
         actualItems.find(item => item.label === 'saturday morning') || {
           isRefined: false,
@@ -64,7 +68,11 @@ const ToggleDay = connectRefinementList(({ items: actualItems, refine }) => {
     },
     {
       label: 'Saturday 1st afternoon',
-      value: ['saturday afternoon'],
+      value: (
+        actualItems.find(item => item.label === 'saturday afternoon') || {
+          value: [],
+        }
+      ).value,
       isRefined: (
         actualItems.find(item => item.label === 'saturday afternoon') || {
           isRefined: false,
@@ -73,7 +81,11 @@ const ToggleDay = connectRefinementList(({ items: actualItems, refine }) => {
     },
     {
       label: 'Sunday 2nd morning',
-      value: ['sunday morning'],
+      value: (
+        actualItems.find(item => item.label === 'sunday morning') || {
+          value: [],
+        }
+      ).value,
       isRefined: (
         actualItems.find(item => item.label === 'sunday morning') || {
           isRefined: false,
@@ -82,9 +94,13 @@ const ToggleDay = connectRefinementList(({ items: actualItems, refine }) => {
     },
     {
       label: 'Sunday 2nd afternoon',
-      value: ['sunday afternoon'],
+      value: (
+        actualItems.find(item => item.label === 'sunday afternoon') || {
+          value: [],
+        }
+      ).value,
       isRefined: (
-        actualItems.find(item => item.label === 'saturday afternoon') || {
+        actualItems.find(item => item.label === 'sunday afternoon') || {
           isRefined: false,
         }
       ).isRefined,

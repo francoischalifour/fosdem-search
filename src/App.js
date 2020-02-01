@@ -339,9 +339,10 @@ function App() {
             boxShadow:
               '0 7px 11px -3px rgba(35,38,59,.2), 0 2px 4px 0 rgba(35,38,59,.3)',
           }}
-          onClick={() =>
-            setIsPanelHidden(prevIsPanelHidden => !prevIsPanelHidden)
-          }
+          onClick={() => {
+            setIsPanelHidden(prevIsPanelHidden => !prevIsPanelHidden);
+            window.scrollTo(0, 0);
+          }}
         >
           <FontAwesomeIcon
             style={{ color: '#fff' }}

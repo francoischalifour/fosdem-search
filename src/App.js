@@ -537,10 +537,7 @@ function Hit({ hit }) {
         lines={3}
         ellipsis={
           <span>
-            ...{' '}
-            <a class="text-fosdem" href="/link/to/article">
-              Show more
-            </a>
+            ...{' '}Show more
           </span>
         }
       >
